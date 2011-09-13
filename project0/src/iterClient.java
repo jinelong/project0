@@ -9,32 +9,88 @@ public class iterClient {
 
 	
 	int maxNumber = 4;
+	String myName;
+	
 	clientInfo  clientList [] = new clientInfo[maxNumber];
 	int serverPort;
 	int ownPort;
+	String serverAddr;
 	public int counter = 0;
 	
-	public iterClient(int sPort, int oPort) throws IOException{
+	
+	public iterClient(String addr, int sPort, String myName, int oPort) throws IOException{
 		serverPort = sPort;
 		ownPort = oPort;
+		serverAddr = addr;
 		
 		
 		//setup listening server for server info and client message
 		receiveServer local = new receiveServer(ownPort);
 		local.run();
+		String message = myName+"@"+ ownPort+"@";
+
+		send(serverAddr, serverPort, message );
 		
 		
 	}
+	
+	public void send(String serverAddr, int serverPort, String message){
+		
+		Socket socket = null;
+		
+		try {		    
+			
+			socket = new Socket(serverAddr,serverPort);
+			socket.setSoTimeout(5000);
+		    
+	    
+	} catch (SocketTimeoutException e) {
+		System.err.println("socket timeout, please check server port and address");
+		
+	} catch (IOException e) {
+		e.printStackTrace();
+	}
+	
+	
+		try{
+    		//send connection confirmation
+	    		BufferedWriter wr = new BufferedWriter(new OutputStreamWriter(socket.getOutputStream()));
+	    		
+	    		//get local ip address
+	    		InetAddress localHost = InetAddress.getLocalHost();
+	    		String ip = localHost.getHostAddress();
+	    		
+				System.out.println(localHost.getHostName());
+				System.out.println(localHost.getHostAddress()); 
+				
+				wr.write(message);
+				// wr.write("n5"+"@"+ip+"@"+"23433235@");
+			    wr.flush();
+			    wr.close();
+	    	}
+    		catch(IOException e){
+    			System.err.println("something wrong when sending welcome info to client");
+    		}
+		  
+		    
+		try {
+			socket.close();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
+	}
+	
+	
+	
+	
 	class clientInfo{
 		
 		public String name;
 		public String ip;
 		public String chatPort;
 	}
-	
-	
-	
-	
 	
 	
 	
@@ -52,13 +108,10 @@ public class iterClient {
 		public void run() {
 			// TODO Auto-generated method stub
 			Socket temp = null;
+			System.out.println("Listening server set up, waiting for server response");
 			while(true){
-			try {
-				 temp = server.accept();
-			} catch (IOException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
+				
+			  try { temp = server.accept();} catch (IOException e) { e.printStackTrace(); }
 			
 			  try {
 			        BufferedReader rd = new BufferedReader(new InputStreamReader(temp.getInputStream()));
@@ -104,7 +157,7 @@ public class iterClient {
 			        		}
 			        		if(instruction.equals("heartbeat")){
 			        			//server request heartbeat
-			        			
+			        		;	
 			        		}
 			        		
 			        		
@@ -133,75 +186,43 @@ public class iterClient {
 	public static void main(String[] args){
 		
 		  Socket socket=null;
+		  int serverPort;
+		  int ownPort;
+		  String name;
+		  String serverAddr;
+		  
+		  Scanner s = new Scanner(System.in);
+		  
 		  
 		 
-		  
+		  // javac iterClient [serverIP/serverName] [serverPort] [myName] [ownPort] 
 		if(args[0].equals(null) || args[0].equals("") ||args[1].equals(null) || args[1].equals("")){
-			System.err.println("useage: iterClient [serverName] [userName]");
+			System.err.println("useage: iterClient [serverName] [port]");
 		}
-				  int port = 22222;
-		try {		    
-		
-				socket = new Socket(args[0],port);
-				socket.setSoTimeout(5000);
-			    
-		    
-		} catch (SocketTimeoutException e) {
-			System.err.println("socket timeout, please check server port and address");
-			
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
+		// args[0] = serverAddr;
+		// args[1] = serverPort
+		// args[2] = myName
+		// args[3] = ownPort
 		
 		
-		//receiving
-		    /*try {
-		        BufferedReader rd = new BufferedReader(new InputStreamReader(socket.getInputStream()));
-
-		        String str;
-		        while ((str = rd.readLine()) != null) {
-		            System.out.println("receiving message from server: "+ str);
-		        }
-		        rd.close();
-		    } catch (IOException e) {
-		    	System.err.println("something wrong when receiving message from client");
-		    }*/
+		serverAddr = args[0];
+		serverPort = Integer.parseInt(args[1]);
+		ownPort = Integer.parseInt(args[2]);
 		
-		//sending
-			try{
-	    		//send connection confirmation
-		    		BufferedWriter wr = new BufferedWriter(new OutputStreamWriter(socket.getOutputStream()));
-		    		
-		    		//get local ip address
-		    		InetAddress localHost = InetAddress.getLocalHost();
-		    		String ip = localHost.getHostAddress();
-		    		
-					System.out.println(localHost.getHostName());
-					System.out.println(localHost.getHostAddress()); 
-					
-					
-				    wr.write("n5"+"@"+ip+"@"+"23433235@");
-				    wr.flush();
-				    wr.close();
-		    	}
-	    		catch(IOException e){
-	    			System.err.println("something wrong when sending welcome info to client");
-	    		}
-			    /*client
-			     * 
-			     * InetAddress localHost = InetAddress.getLocalHost();
-					System.out.println(localHost.getHostName());
-					System.out.println(localHost.getHostAddress()); 
-
-			     * 
-			     * */
-			    
+		System.out.print("please input your name: ");
+		name = s.nextLine();
+		
 		try {
-			socket.close();
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+		
+			iterClient user = new iterClient(serverAddr, serverPort, name, ownPort);
+			user.myName = name;
+			
+		} catch (IOException e1) {
+			e1.printStackTrace();
 		}
+		
+				  
+	
 		System.out.println("quit");
 	}//main
 }//iterClient

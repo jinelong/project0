@@ -18,6 +18,9 @@ public class iterServer {
 	
 	public boolean isFull(){
 		return (counter>maxClient || counter==maxClient)? true:false;
+		
+		
+		
 			
 	}
 	public void passUserList(String addr, int port) throws UnknownHostException, IOException{
@@ -167,7 +170,7 @@ public class iterServer {
 
 		        String str= null;
 		        String name;
-		        String ip;
+		        String ip = temp.getInetAddress().toString();
 		        String p;
 		        while ((str = rd.readLine()) != null) {
 		        	Scanner t1 = new Scanner(str).useDelimiter("@");
