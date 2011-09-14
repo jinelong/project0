@@ -6,7 +6,7 @@ public class iterServer {
 	/**
 	 * @author Jin
 	 * unit that stores online client info
-	 *
+	 * giHub addr: git@github.com:jinelong/project0.git
 	 */
 	
 	public int maxClient = 4;
@@ -17,11 +17,24 @@ public class iterServer {
 	public ServerSocket serverLink;
 	
 	public boolean isFull(){
-		return (counter>maxClient || counter==maxClient)? true:false;
-		
-		
-		
+		return (counter>maxClient)? true:false;
 			
+	}
+	public void removeByName(String name){
+		
+		for(int i=0;i<counter;i++){
+			if(clientList[i].name.equals(name)){
+				clientList[i].name = clientList[counter-1].name;
+				clientList[i].chatPort = clientList[counter-1].chatPort;
+				clientList[i].ip = clientList[counter-1].ip;
+				
+				counter--;
+			}
+			
+			
+		}
+		
+		
 	}
 	public void passUserList(String addr, int port) throws UnknownHostException, IOException{
 		Socket socket = new Socket(addr, port);
@@ -75,6 +88,8 @@ public class iterServer {
 	public void removeCurrentClient(){
 		--counter;
 	}
+	public int getClientNum (){ return counter;}
+	
 	
 	class Client{
 		
@@ -85,7 +100,7 @@ public class iterServer {
 		public Client(){
 			name = null;
 			ip = null;
-			serverLink = null;
+			chatPort = null;
 		}
 		
 		public ServerSocket createServers() {
@@ -102,6 +117,7 @@ public class iterServer {
 	    	}
 	    
 	    	System.out.println("chatServer created, port is " + portC);
+	    	System.out.println("current online players: " + (getClientNum()-1));
 	    	return serverLink;
 		}	
 		public boolean setPort(String n){
@@ -137,34 +153,51 @@ public class iterServer {
 		
     public static void main(String[] args) throws IOException {
     	
-    	if(args[0].equals("") || args[0].equals(null)){
-    		System.out.println("ussage: java iterServer [port]");
-    	}
-    	
-    	int port;
-    	port =Integer.parseInt(args[0]);
+    	//args[0] =  "22222";
+        int port = 22222;
+    	//port =Integer.parseInt(args[0]);
     	iterServer s1 = new iterServer(port);
     
-    	while(!s1.isFull()){
+    	while(true){
     		Socket temp = null;
     		
-    		if(s1.isFull()){
-    			System.out.println("server is full");
-    			try {
-					Thread.sleep(1000);
-				} catch (InterruptedException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-				}
-    			continue;
-    			}
-    		else{
+    	//	if(s1.isFull()){
+    	//		System.out.println("server is full");
+    	//		try {
+		//			Thread.sleep(1000);
+		//		} catch (InterruptedException e) {
+		//			e.printStackTrace();
+		//		}
+    	//		continue;
+    	//	}//if
+    		
+    		/*
+    		 * while(s1.isFull()){
+    		 * 
+    		 * 	ServerScoket fullServer = new ServerSocket(port);
+    		 *  Socket fullSocket = fullServer.accpet(); // this socket should receive remove info
+    		 *  
+    		 *  
+    		 * 
+    		 *  Thread.sleep(2000);
+    		 * }
+    		 * 
+    		 * 
+    		 * 
+    		 * */
+    		
+    		
+    		
+    		
+    	//	else{
     	    	
 		  	    ServerSocket tempServer= s1.createClient();
 		  	    temp = tempServer.accept();
 		  	  
-    		}
+    	//	}
    
+		  	    
+		  	    // enter@name@2222@
 		    try {
 		        BufferedReader rd = new BufferedReader(new InputStreamReader(temp.getInputStream()));
 
@@ -172,33 +205,54 @@ public class iterServer {
 		        String name;
 		        String ip = temp.getInetAddress().toString();
 		        String p;
+		        String status;
 		        while ((str = rd.readLine()) != null) {
 		        	Scanner t1 = new Scanner(str).useDelimiter("@");
-
-			        name = t1.next();
-			        ip = t1.next();
-			        p = t1.next();//port
+		        		
+		        	status = t1.next();// either "enter" or "quit"
+		        	name = t1.next();//name
+		        	p = t1.next();//port
+		        	 
+		        	if(status.equals("enter") && !s1.isFull()){
+				        
+				       
 			        
+			        // server@list@name1$ip1$port1@
+			        // server@waning@messageBody
+			        // server@heartbeat			        
+			        //from client: myName+"@ownPort+"@"
+		        		
+				        if(s1.getCurrentClient().setName(name)){
+				        	 s1.getCurrentClient().setIP(ip);
+				        	 s1.getCurrentClient().setPort(p);
+				        	 
+				        	 System.out.println("name is " + name + " ip is " + ip);
+			        	}else{
+			        		
+			        		System.out.println("name already exist");
+			        		Socket s = new Socket(ip, Integer.parseInt(p));
+			        		BufferedWriter wr = new BufferedWriter(new OutputStreamWriter(s.getOutputStream()));
+				    		wr.write("warnings@name is already taken, please change a name and reconnect");
+			        		wr.flush();
+			        		wr.close();
+			        		s1.removeCurrentClient();
+			        	}
 			        
-			        
-			        if(s1.getCurrentClient().setName(name)){
-			        	 s1.getCurrentClient().setIP(ip);
-			        	 s1.getCurrentClient().setPort(p);
-			        	 
-			        	 System.out.println("name is " + name + " ip is " + ip);
-		        	}else{
-		        		System.out.println("name already exist");
-		        		Socket s = new Socket(ip, Integer.parseInt(p));
+		        }else if(status.equals("quit")){
+		        		s1.removeByName(name);
+		        }else{ 
+		        	
+			        	Socket s = new Socket(ip, Integer.parseInt(p));
 		        		BufferedWriter wr = new BufferedWriter(new OutputStreamWriter(s.getOutputStream()));
-			    		wr.write("name is already taken, please change a name and reconnect");
+			    		wr.write("server full, come back later");
 		        		wr.flush();
 		        		wr.close();
 		        		s1.removeCurrentClient();
-		        	}
-			        
-			        
+			        	
+			        	break; 
+			        }
 		  
-		         }
+		      }//while_readSocket
 		       
 		        rd.close();
 		    } catch (IOException e) {
@@ -206,8 +260,9 @@ public class iterServer {
 		    }
     		 temp.close();
     		 s1.getCurrentClient().close();
-    	}//while
     	
-    }
+    	}//while_ture
+    	
+    }//main
    
-}
+}//iterServer

@@ -1,5 +1,4 @@
 import java.net.*;
-import java.util.ArrayList;
 import java.util.Scanner;
 import java.io.*;
 
@@ -23,11 +22,11 @@ public class iterClient {
 		ownPort = oPort;
 		serverAddr = addr;
 		
-		
 		//setup listening server for server info and client message
 		receiveServer local = new receiveServer(ownPort);
-		local.run();
-		String message = myName+"@"+ ownPort+"@";
+	//	local.run();
+		//enter@name@port@
+		String message = "enter@"+myName+"@"+ ownPort+"@";
 
 		send(serverAddr, serverPort, message );
 		
@@ -128,7 +127,10 @@ public class iterClient {
 			        String instruction; // serverInstruction
 			        
 			        // server@list@name1$ip1$port1@
-			        // client@name@message@
+			        // server@waning@messageBody
+			        // server@heartbeat
+			        
+			        
 			        
 			        
 			        while ((str = rd.readLine()) != null) {
@@ -159,6 +161,12 @@ public class iterClient {
 			        			//server request heartbeat
 			        		;	
 			        		}
+			        		if(instruction.equals("warning"))
+			        		{
+			        			System.err.println(t1.next());
+			        			System.exit(1);
+			        			
+			        		}
 			        		
 			        		
 			        	}
@@ -183,7 +191,7 @@ public class iterClient {
 	
 	
 	
-	public static void main(String[] args){
+	public static void main(String[] args) throws InterruptedException{
 		
 		  Socket socket=null;
 		  int serverPort;
@@ -196,13 +204,12 @@ public class iterClient {
 		  
 		 
 		  // javac iterClient [serverIP/serverName] [serverPort] [myName] [ownPort] 
-		if(args[0].equals(null) || args[0].equals("") ||args[1].equals(null) || args[1].equals("")){
-			System.err.println("useage: iterClient [serverName] [port]");
-		}
+		//if(args[0].equals(null) || args[0].equals("") ||args[1].equals(null) || args[1].equals("")){
+	//		System.err.println("useage: iterClient [serverName] [port]");
+	//	}
 		// args[0] = serverAddr;
 		// args[1] = serverPort
-		// args[2] = myName
-		// args[3] = ownPort
+		// args[2] = ownPort
 		
 		
 		serverAddr = args[0];
@@ -221,8 +228,13 @@ public class iterClient {
 			e1.printStackTrace();
 		}
 		
+	//	while(true){
+	//		System.out.println("test");
+	//		Thread.sleep(2000);
+	//	}
+		
 				  
 	
-		System.out.println("quit");
+		
 	}//main
 }//iterClient
